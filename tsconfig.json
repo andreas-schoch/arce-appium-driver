@@ -7,7 +7,7 @@
       "dom"
     ],
     "declaration": false,
-    "outDir": "dist",
+    "outDir": "build",
     "strict": true,
     "esModuleInterop": true,
 //    "moduleResolution": "node",
@@ -15,11 +15,12 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "index.ts"
   ],
   "exclude": [
     "node_modules",
-    "dist",
+    "build",
     "src/**/*.spec.ts"
   ]
 }

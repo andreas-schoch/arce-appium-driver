@@ -11,8 +11,14 @@ module.exports = {
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
+    // '@appium/eslint-config-appium'
   ],
   rules: {
-    "@typescript-eslint/ban-ts-comment": 0
+    '@typescript-eslint/ban-ts-comment': 0,
+    'no-multi-spaces': 2,
+    quotes: [2, 'single', {
+      avoidEscape: true,
+      allowTemplateLiterals: true,
+    }],
   }
 };

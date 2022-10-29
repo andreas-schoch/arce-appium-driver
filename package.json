@@ -1,19 +1,23 @@
 {
   "name": "arce-appium-driver",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Experimental driver for appium.",
-  "main": "dist/ArceAppiumDriver.js",
+  "main": "build/src/arce-appium-driver.js",
   "bin": {},
+  "directories": {
+    "src": "src"
+  },
   "files": [
-    "dist"
+    "build/index.js",
+    "build/src"
   ],
   "scripts": {
     "lint": "eslint src",
-    "build": "rimraf dist/ && tsc --target es6 && npm run copy-public",
-    "start": "nodemon dist/index.js",
+    "build": "rimraf build/ && tsc --target es6 && npm run copy-public",
+    "start": "nodemon build/index.js",
     "test": "c8 --reporter=lcov mocha --require ts-node/register --timeout 15000 'test/**/*spec.{ts,tsx}'",
     "test-json-cov": "c8 --reporter=json-summary mocha --require ts-node/register --timeout 15000 'test/**/*spec.{ts,tsx}'",
-    "copy-public": "copyfiles -u 1 src/**/*.html src/**/*.css dist/"
+    "copy-public": "copyfiles -u 1 src/**/*.html src/**/*.css build/"
   },
   "c8": {
     "include": "src",
@@ -31,14 +35,15 @@
   "author": "Andreas Schoch",
   "license": "MIT",
   "dependencies": {
-    "@appium/base-driver": "^8.7.3",
     "appium-support": "^2.55.0",
-    "arce": "^0.4.0"
+    "arce": "^0.4.0",
+    "xpath-to-css": "^1.1.0"
   },
   "peerDependencies": {
     "appium": "^2.0.0-beta.40"
   },
   "devDependencies": {
+    "@appium/eslint-config-appium": "^7.0.0",
     "@types/mocha": "^9.1.1",
     "@types/node": "^16.11.60",
     "@types/sinon": "^10.0.13",
@@ -61,7 +66,7 @@
     "driverName": "arce-driver",
     "automationName": "ARCE",
     "platformNames": [
-      "windows"
+      "Windows"
     ],
     "mainClass": "ArceAppiumDriver"
   }

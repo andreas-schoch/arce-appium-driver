@@ -1,9 +1,11 @@
-import {FindCommands, ExecuteCommands} from "@appium/types/lib";
-import {findCommands} from "./find";
-import {executeCommands} from "./execute";
+import {FindCommands} from '@appium/types/lib';
+import {findCommands} from './find';
+import {executeCommands} from './execute';
+import {ElementCommands, elementCommands} from './element';
 
 
-export const commands: FindCommands & ExecuteCommands = {
+export const commands: FindCommands & ElementCommands = {
   ...findCommands,
-  ...executeCommands
+  ...elementCommands,
+  // ...executeCommands,
 };
