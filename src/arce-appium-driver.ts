@@ -16,11 +16,7 @@ export class ArceAppiumDriver extends BaseDriver {
     this.locatorStrategies = ['css selector', 'xpath', 'tag name', 'class name', 'accessibility id', 'id'] as ArceLocatorStrategies[];
     this.resetState();
 
-    for (const [cmd, fn] of Object.entries(commands)) {
-      // TODO try to refactor individual commands into some form of mixin that work better with typescript
-      // @ts-ignore
-      this[cmd] = fn;
-    }
+    Object.assign(ArceAppiumDriver.prototype, commands);
   }
 
   resetState() {

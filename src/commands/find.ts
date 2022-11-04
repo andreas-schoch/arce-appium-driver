@@ -5,10 +5,18 @@ import xPathToCss from 'xpath-to-css';
 import {ArceAppiumDriver, ArceLocatorStrategies} from '../arce-appium-driver';
 import {ScriptFn} from 'arce/dist/interfaces';
 
-export const findCommands: FindCommands = {
-  findElOrEls: async function <Mult extends boolean>(strategy: ArceLocatorStrategies, selector: string, mult: Mult, rootElementId?: string): Promise<Mult extends true ? AppiumElement[] : AppiumElement> {
+export type ArceFindCommands = Pick<FindCommands, 'findElOrEls' | 'getPageSource'>; // only interested in the methods that need to be implemented
 
-    const script: ScriptFn<{ rootElementId: string, mult: boolean, selector: string }> = ({capture, done, global, scriptContext}) => {
+export const findCommands: ArceFindCommands = {
+  // BaseDriver expects this method to be implemented see: node_modules/@appium/base-driver/build/lib/basedriver/commands/find.js
+  // It is used internally by the following commands:
+  // - findElement() https://w3c.github.io/webdriver/#find-element
+  // - findElementFromElement() https://w3c.github.io/webdriver/#find-element-from-element
+  // - findElements() https://w3c.github.io/webdriver/#find-elements
+  // - findElementsFromElement() https://w3c.github.io/webdriver/#find-elements-from-element
+  findElOrEls: async function <Mult extends boolean>(strategy: ArceLocatorStrategies, selector: string, mult: Mult, rootElementId?: string): Promise<Mult extends true ? AppiumElement[] : AppiumElement> {
+    const scriptFn: ScriptFn<{ rootElementId: string, mult: boolean, selector: string }> = ({capture, done, global, scriptContext}) => {
+      // These Maps are used to keep track of already found elements
       const appiumElementsById: Map<string, HTMLElement> = global.appiumElementsById as Map<string, HTMLElement> || new Map();
       const appiumIdsByElement: Map<HTMLElement, string> = global.appiumIdsByElement as Map<HTMLElement, string> || new Map();
       console.log(appiumElementsById, appiumIdsByElement, scriptContext);
@@ -44,26 +52,13 @@ export const findCommands: FindCommands = {
     };
 
     selector = toCssSelector(strategy, selector);
-    const {error, captures} = await ArceAppiumDriver.arceServer.execute(script, {rootElementId, mult, selector});
+    const {error, captures} = await ArceAppiumDriver.arceServer.execute(scriptFn, {rootElementId, mult, selector});
     if (error) throw new Error(error);
     // @ts-ignore
     return Promise.resolve(mult ? captures[0] as AppiumElement[] : captures[0] as AppiumElement);
   },
-  findElOrElsWithProcessing<Mult extends boolean>(strategy: string, selector: string, mult: Mult, context?: string): Promise<Mult extends true ? AppiumElement[] : AppiumElement> {
-    return this.findElOrEls(strategy, selector, mult, context);
-  },
-  findElement: function (strategy: ArceLocatorStrategies, selector: string): Promise<AppiumElement> {
-    return this.findElOrEls<false>(strategy, selector, false);
-  },
-  findElementFromElement: function (strategy: ArceLocatorStrategies, selector: string, elementId: string): Promise<AppiumElement> {
-    return this.findElOrEls<false>(strategy, selector, false, elementId);
-  },
-  findElements: function (strategy: ArceLocatorStrategies, selector: string): Promise<AppiumElement[]> {
-    return this.findElOrEls(strategy, selector, true);
-  },
-  findElementsFromElement: function (strategy: ArceLocatorStrategies, selector: string, elementId: string): Promise<AppiumElement[]> {
-    return this.findElOrEls(strategy, selector, true, elementId);
-  },
+  // BaseDriver calls this internally for debugging purposes when findElOrEls() throws an error within findElOrElsWithProcessing()
+  // https://w3c.github.io/webdriver/#get-page-source
   getPageSource: async function (): Promise<string> {
     const scriptFn: ScriptFn = ({done, capture, global}) => {
       capture(global.document.body.innerHTML);

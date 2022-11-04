@@ -2,31 +2,29 @@ import {ExternalDriver} from '@appium/types/lib/driver';
 import {ArceAppiumDriver} from '../arce-appium-driver';
 import {ScriptFn} from 'arce/dist/interfaces';
 
-export type ElementCommands = Pick<ExternalDriver, 'elementSelected' | 'getAttribute' | 'getProperty' | 'getCssProperty' | 'getText' | 'getName' | 'getElementRect' | 'elementEnabled' | 'elementDisplayed' | 'click' | 'clear' | 'setValue' | 'getElementScreenshot'>;
+// all commands that are performed on a single (already found) element
+export type ArceElementCommands = Pick<ExternalDriver, 'elementSelected' | 'getAttribute' | 'getProperty' | 'getCssProperty' | 'getText' | 'getName' | 'getElementRect' | 'elementEnabled' | 'elementDisplayed' | 'click' | 'clear' | 'setValue' | 'getElementScreenshot' | 'replaceValue'>;
+
+// A (probably not) complete list of all boolean attributes in HTML. It's string value needs to be transformed into true if present to conform to w3c standard
 const booleanAttributes: Set<string> = new Set(['allowfullscreen', 'async', 'autofocus', 'autoplay', 'checked', 'controls', 'default', 'defer', 'disabled', 'formnovalidate', 'inert', 'ismap', 'itemscope', 'loop', 'multiple', 'muted', 'nomodule', 'novalidate', 'open', 'playsinline', 'readonly', 'required', 'reversed', 'selected']);
 
-
-export const elementCommands: ElementCommands = {
+export const elementCommands: ArceElementCommands = {
   // https://w3c.github.io/webdriver/#get-element-attribute
   async getAttribute(name: string, elementId: string): Promise<string | null> {
     const scriptFn: ScriptFn<{ elementId: string, name: string, isBool: boolean }> = ({capture, done, global, scriptContext}) => {
       const appiumElementsById: Map<string, HTMLElement> = global.appiumElementsById as Map<string, HTMLElement> || new Map();
       const element = appiumElementsById.get(scriptContext.elementId);
-      if (!element) {
-        throw new Error('no such window');
-      }
+      if (!element) throw new Error('no such window');
       // 'If the attribute is present, its value must either be the empty string or a value that is an ASCII case-insensitive match for
       // the attribute's canonical name' - https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#boolean-attributes
-      // According to webdriver protocol getAttribute must return true or null and therefore.
+      // According to webdriver protocol getAttribute must return true or null
       const attr = element.getAttribute(scriptContext.name);
       capture(scriptContext.isBool ? attr !== null ? true : null : attr);
       done();
     };
 
     const {error, captures} = await ArceAppiumDriver.arceServer.execute(scriptFn, {elementId, name, isBool: booleanAttributes.has(name)});
-    if (error) {
-      throw new Error(error);
-    }
+    if (error) throw new Error(error);
     return captures[0] as string;
   },
   // https://w3c.github.io/webdriver/#get-element-property
@@ -79,5 +77,19 @@ export const elementCommands: ElementCommands = {
     const {error} = await ArceAppiumDriver.arceServer.execute(scriptFn, {elementId});
     if (error) throw new Error(error);
   },
+  // // // https://w3c.github.io/webdriver/#element-send-keys
+  // async setValue(text: string, elementId: string): Promise<void> {
+  //   const scriptFn: ScriptFn<{ elementId: string, text: string }> = ({done, global, scriptContext}) => {
+  //     const appiumElementsById: Map<string, HTMLElement> = global.appiumElementsById as Map<string, HTMLElement> || new Map();
+  //     const element = appiumElementsById.get(scriptContext.elementId);
+  //     if (!element) throw new Error('no such window');
+  //     if (element === global.document)
+  //     element.click();
+  //     done();
+  //   };
+  //
+  //   const {error} = await ArceAppiumDriver.arceServer.execute(scriptFn, {elementId, text});
+  //   if (error) throw new Error(error);
+  // },
 
 };

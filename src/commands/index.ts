@@ -1,10 +1,8 @@
-import {FindCommands} from '@appium/types/lib';
-import {findCommands} from './find';
-import {executeCommands} from './execute';
-import {ElementCommands, elementCommands} from './element';
+import {ArceFindCommands, findCommands} from './find';
+import {ArceElementCommands, elementCommands} from './element';
 
 
-export const commands: FindCommands & ElementCommands = {
+export const commands: ArceFindCommands & ArceElementCommands = {
   ...findCommands,
   ...elementCommands,
   // ...executeCommands,
