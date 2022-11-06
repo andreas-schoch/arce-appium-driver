@@ -40,12 +40,14 @@ Then within your appium client of choice, use the following capabilities:
   - [x] `element.findElements()` by: `id`, `class`, `css selector`, `xpath`, `automationId`
 - Element:
   - [x] `driver.getActiveElement()`
+  - [x] `element.active()`
   - [x] `element.getAttribute()`
   - [x] `element.getProperty()`
   - [x] `element.getCssProperty()`
   - [x] `element.click()`
   - [x] `element.clear()`
   - [x] `element.setValue()`
+  - [x] `element.setValueImmediate()`
   - [x] `element.elementSelected()`
   - [x] `element.getText()`
   - [x] `element.getName()`
@@ -57,11 +59,11 @@ Then within your appium client of choice, use the following capabilities:
   - [ ] `executeMethod`
   - [ ] `executeCommand`
 - Navigate:
-  - [ ] `setUrl`
-  - [ ] `getUrl`
-  - [ ] `back`
-  - [ ] `forward`
-  - [ ] `refresh`
+  - [x] `setUrl`
+  - [x] `getUrl`
+  - [x] `back`
+  - [x] `forward`
+  - [x] `refresh`
 
 
 

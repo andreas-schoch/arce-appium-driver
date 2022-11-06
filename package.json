@@ -1,6 +1,6 @@
 {
   "name": "arce-appium-driver",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Experimental driver for appium.",
   "main": "build/src/arce-appium-driver.js",
   "bin": {},
