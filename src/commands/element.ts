@@ -164,4 +164,30 @@ export const elementCommands: ArceElementCommands = {
     // @ts-ignore
     return this.setValue(text, elementId);
   },
+  // https://w3c.github.io/webdriver/#is-element-selected
+  elementSelected: async function (elementId: string): Promise<boolean> {
+    const scriptFn: ScriptFn<{ elementId: string }> = ({done, global, capture, scriptContext}) => {
+      const appiumElementsById: Map<string, HTMLElement> = global.appiumElementsById as Map<string, HTMLElement> || new Map();
+      const element = appiumElementsById.get(scriptContext.elementId);
+      if (!element) throw new Error('no such window');
+
+      const isCheckboxOrRadioInput = (element: HTMLElement): element is HTMLInputElement => {
+        const el = element as HTMLInputElement;
+        return typeof el.value === 'string' && (el.type === 'checkbox' || el.type === 'radio');
+      };
+
+      const isOptionsElement = (el: HTMLElement): el is HTMLOptionElement => {
+        return typeof (el as HTMLOptionElement).selected === 'boolean';
+      };
+
+      if (isCheckboxOrRadioInput(element)) capture(element.checked);
+      else if (isOptionsElement(element)) capture(element.selected);
+      else capture(false);
+      done();
+    };
+
+    const {error, captures} = await ArceAppiumDriver.arceServer.execute(scriptFn, {elementId});
+    if (error) throw new Error(error);
+    return captures[0] as boolean;
+  }
 };

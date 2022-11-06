@@ -46,7 +46,7 @@ Then within your appium client of choice, use the following capabilities:
   - [x] `element.click()`
   - [x] `element.clear()`
   - [x] `element.setValue()`
-  - [ ] `element.elementSelected()`
+  - [x] `element.elementSelected()`
   - [ ] `element.getText()`
   - [ ] `element.getName()`
   - [ ] `element.getElementRect()`
