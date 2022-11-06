@@ -4,7 +4,7 @@ import {ScriptFn} from 'arce/dist/interfaces';
 import {Element as AppiumElement} from '@appium/types/lib/action';
 
 // all commands that are performed on a single (already found) element
-export type ArceElementCommands = Pick<ExternalDriver, 'elementSelected' | 'getAttribute' | 'getProperty' | 'getCssProperty' | 'getText' | 'getName' | 'getElementRect' | 'elementEnabled' | 'elementDisplayed' | 'click' | 'clear' | 'setValue' | 'getElementScreenshot' | 'active'>;
+export type ArceElementCommands = Pick<ExternalDriver, 'elementSelected' | 'getAttribute' | 'getProperty' | 'getCssProperty' | 'getText' | 'getName' | 'getElementRect' | 'elementEnabled' | 'elementDisplayed' | 'click' | 'clear' | 'setValue' | 'setValueImmediate' | 'getElementScreenshot' | 'active'>;
 
 // A (probably not) complete list of all boolean attributes in HTML. It's string value needs to be transformed into true if present to conform to w3c standard
 const booleanAttributes: Set<string> = new Set(['allowfullscreen', 'async', 'autofocus', 'autoplay', 'checked', 'controls', 'default', 'defer', 'disabled', 'formnovalidate', 'inert', 'ismap', 'itemscope', 'loop', 'multiple', 'muted', 'nomodule', 'novalidate', 'open', 'playsinline', 'readonly', 'required', 'reversed', 'selected']);
@@ -109,19 +109,59 @@ export const elementCommands: ArceElementCommands = {
     const {error} = await ArceAppiumDriver.arceServer.execute(scriptFn, {elementId});
     if (error) throw new Error(error);
   },
-  // // // https://w3c.github.io/webdriver/#element-send-keys
-  // async setValue(text: string, elementId: string): Promise<void> {
-  //   const scriptFn: ScriptFn<{ elementId: string, text: string }> = ({done, global, scriptContext}) => {
-  //     const appiumElementsById: Map<string, HTMLElement> = global.appiumElementsById as Map<string, HTMLElement> || new Map();
-  //     const element = appiumElementsById.get(scriptContext.elementId);
-  //     if (!element) throw new Error('no such window');
-  //     if (element === global.document)
-  //     element.click();
-  //     done();
-  //   };
-  //
-  //   const {error} = await ArceAppiumDriver.arceServer.execute(scriptFn, {elementId, text});
-  //   if (error) throw new Error(error);
-  // },
+  // https://w3c.github.io/webdriver/#element-clear
+  async clear(elementId: string): Promise<void> {
+    const scriptFn: ScriptFn<{ elementId: string }> = ({done, global, scriptContext}) => {
+      const appiumElementsById: Map<string, HTMLElement> = global.appiumElementsById as Map<string, HTMLElement> || new Map();
+      const element = appiumElementsById.get(scriptContext.elementId);
+      if (!element) throw new Error('no such window');
 
+      const isHTMLInputElement = (el: HTMLElement): el is HTMLInputElement | HTMLTextAreaElement => {
+        // Not sure if this is precise enough. Should work for any text fields and most other input types
+        // checkbox and radio type inputs can be changed via click()
+        // @ts-ignore
+        return typeof el.value === 'string' && !(el.type === 'checkbox' || el.type === 'radio');
+      }
+
+      // According to https://w3c.github.io/webdriver/#element-interaction:
+      // "The element interaction commands provide a high-level instruction set for manipulating form controls.
+      // Unlike Actions, they will implicitly scroll elements into view and check that it is an interactable element."
+      if (element.isContentEditable) {
+        if (element.innerHTML === '') return done();
+        element.scrollIntoView({behavior: 'auto', block: 'nearest', inline: 'nearest'});
+        element.innerHTML = '';
+      } else if (isHTMLInputElement(element)) {
+        element.scrollIntoView({behavior: 'auto', block: 'nearest', inline: 'nearest'});
+        element.value = '';
+      } else {
+        throw new Error('invalid element state');
+      }
+
+      done();
+    };
+
+    const {error} = await ArceAppiumDriver.arceServer.execute(scriptFn, {elementId});
+    if (error) throw new Error(error);
+  },
+  // https://w3c.github.io/webdriver/#element-send-keys
+  async setValue(text: string, elementId: string): Promise<void> {
+    const scriptFn: ScriptFn<{ elementId: string, text: string }> = ({done, global, scriptContext}) => {
+      const appiumElementsById: Map<string, HTMLElement> = global.appiumElementsById as Map<string, HTMLElement> || new Map();
+      const element = appiumElementsById.get(scriptContext.elementId);
+      if (!element) throw new Error('no such window');
+      // Since programmatically triggered keyboard events are unsafe, browsers will ignore it.
+      // The only other way to maybe emulate it is with the deprecated `document.execCommand('insertText', false, 'some value')` method
+      // @ts-ignore
+      element.value = scriptContext.text
+      done();
+    };
+
+    const {error} = await ArceAppiumDriver.arceServer.execute(scriptFn, {elementId, text});
+    if (error) throw new Error(error);
+  },
+  // https://w3c.github.io/webdriver/#element-send-keys
+  async setValueImmediate(text: string, elementId: string): Promise<void> {
+    // @ts-ignore
+    return this.setValue(text, elementId);
+  },
 };
