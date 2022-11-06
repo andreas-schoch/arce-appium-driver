@@ -1,9 +1,10 @@
 import {ExternalDriver} from '@appium/types/lib/driver';
 import {ArceAppiumDriver} from '../arce-appium-driver';
 import {ScriptFn} from 'arce/dist/interfaces';
+import {Element as AppiumElement} from '@appium/types/lib/action';
 
 // all commands that are performed on a single (already found) element
-export type ArceElementCommands = Pick<ExternalDriver, 'elementSelected' | 'getAttribute' | 'getProperty' | 'getCssProperty' | 'getText' | 'getName' | 'getElementRect' | 'elementEnabled' | 'elementDisplayed' | 'click' | 'clear' | 'setValue' | 'getElementScreenshot' | 'replaceValue'>;
+export type ArceElementCommands = Pick<ExternalDriver, 'elementSelected' | 'getAttribute' | 'getProperty' | 'getCssProperty' | 'getText' | 'getName' | 'getElementRect' | 'elementEnabled' | 'elementDisplayed' | 'click' | 'clear' | 'setValue' | 'getElementScreenshot' | 'active'>;
 
 // A (probably not) complete list of all boolean attributes in HTML. It's string value needs to be transformed into true if present to conform to w3c standard
 const booleanAttributes: Set<string> = new Set(['allowfullscreen', 'async', 'autofocus', 'autoplay', 'checked', 'controls', 'default', 'defer', 'disabled', 'formnovalidate', 'inert', 'ismap', 'itemscope', 'loop', 'multiple', 'muted', 'nomodule', 'novalidate', 'open', 'playsinline', 'readonly', 'required', 'reversed', 'selected']);
@@ -64,12 +65,43 @@ export const elementCommands: ArceElementCommands = {
     if (error) throw new Error(error);
     return captures[0] as string;
   },
+  async active(): Promise<AppiumElement> {
+    const scriptFn: ScriptFn = ({done, global, capture}) => {
+      const appiumElementsById: Map<string, HTMLElement> = global.appiumElementsById as Map<string, HTMLElement> || new Map();
+      const appiumIdsByElement: Map<HTMLElement, string> = global.appiumIdsByElement as Map<HTMLElement, string> || new Map();
+
+      // TODO deduplicate once ARCE implements preloading feature that allows utils to be loaded in advance
+      const asAppiumElement = (element: HTMLElement): AppiumElement => {
+        const alreadyCachedElementId = appiumIdsByElement.get(element);
+        if (alreadyCachedElementId) return ({'element-6066-11e4-a52e-4f735466cecf': alreadyCachedElementId});
+        const newId = Math.random().toString(36).slice(2, 20);
+        appiumElementsById.set(newId, element);
+        appiumIdsByElement.set(element, newId);
+        return ({'element-6066-11e4-a52e-4f735466cecf': newId});
+      };
+
+      if (!global.document.activeElement) throw new Error('no such element');
+      capture(asAppiumElement(global.document.activeElement as HTMLElement))
+      global.appiumElementsById = appiumElementsById;
+      global.appiumIdsByElement = appiumIdsByElement;
+      done();
+    };
+
+    const {error, captures} = await ArceAppiumDriver.arceServer.execute(scriptFn);
+    if (error) throw new Error(error);
+    return captures[0] as AppiumElement;
+  },
   // https://w3c.github.io/webdriver/#element-click
   async click(elementId: string): Promise<void> {
     const scriptFn: ScriptFn<{ elementId: string }> = ({done, global, scriptContext}) => {
       const appiumElementsById: Map<string, HTMLElement> = global.appiumElementsById as Map<string, HTMLElement> || new Map();
       const element = appiumElementsById.get(scriptContext.elementId);
       if (!element) throw new Error('no such window');
+
+      // According to https://w3c.github.io/webdriver/#element-interaction:
+      // "The element interaction commands provide a high-level instruction set for manipulating form controls.
+      // Unlike Actions, they will implicitly scroll elements into view and check that it is an interactable element."
+      element.scrollIntoView({behavior: 'auto', block: 'nearest', inline: 'nearest'});
       element.click();
       done();
     };

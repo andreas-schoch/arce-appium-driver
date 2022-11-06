@@ -34,11 +34,12 @@ Then within your appium client of choice, use the following capabilities:
 
 ## TODO
 - Find:
-  - [x] `findElement` by: `id`, `class`, `css selector`, `xpath`, `automationId`
-  - [x] `findElements` by: `id`, `class`, `css selector`, `xpath`, `automationId`
-  - [x] `findElementFromElement` by: `id`, `class`, `css selector`, `xpath`, `automationId`
-  - [x] `findElementsFromElement` by: `id`, `class`, `css selector`, `xpath`, `automationId`
+  - [x] `driver.findElement()` by: `id`, `class`, `css selector`, `xpath`, `automationId`
+  - [x] `driver.findElements()` by: `id`, `class`, `css selector`, `xpath`, `automationId`
+  - [x] `element.findElement()` by: `id`, `class`, `css selector`, `xpath`, `automationId`
+  - [x] `element.findElements()` by: `id`, `class`, `css selector`, `xpath`, `automationId`
 - Element:
+  - [x] `driver.getActiveElement()`
   - [x] `element.getAttribute()`
   - [x] `element.getProperty()`
   - [x] `element.getCssProperty()`
