@@ -1,4 +1,4 @@
-import {ExternalDriver} from '@appium/types/lib/driver';
+import {ExternalDriver, Rect} from '@appium/types/lib/driver';
 import {ArceAppiumDriver} from '../arce-appium-driver';
 import {ScriptFn} from 'arce/dist/interfaces';
 import {Element as AppiumElement} from '@appium/types/lib/action';
@@ -65,6 +65,85 @@ export const elementCommands: ArceElementCommands = {
     if (error) throw new Error(error);
     return captures[0] as string;
   },
+  // https://w3c.github.io/webdriver/#get-element-text
+  async getText(elementId: string): Promise<string> {
+    const scriptFn: ScriptFn<{ elementId: string, name: string }> = ({capture, done, global, scriptContext}) => {
+      const appiumElementsById: Map<string, HTMLElement> = global.appiumElementsById as Map<string, HTMLElement> || new Map();
+      const element = appiumElementsById.get(scriptContext.elementId);
+      if (!element) throw new Error('no such window');
+      // Should technically implement the following: https://github.com/SeleniumHQ/selenium/blob/a6b161a159c3d581b130f03a2e6e35f577f38dec/javascript/atoms/dom.js#L1007
+      capture(element.innerText)
+      done();
+    };
+
+    const {error, captures} = await ArceAppiumDriver.arceServer.execute(scriptFn, {elementId});
+    if (error) throw new Error(error);
+    return captures[0] as string;
+  },
+  // https://w3c.github.io/webdriver/#get-element-tag-name
+  async getName(elementId: string): Promise<string> {
+    const scriptFn: ScriptFn<{ elementId: string, name: string }> = ({capture, done, global, scriptContext}) => {
+      const appiumElementsById: Map<string, HTMLElement> = global.appiumElementsById as Map<string, HTMLElement> || new Map();
+      const element = appiumElementsById.get(scriptContext.elementId);
+      if (!element) throw new Error('no such window');
+      capture(element.tagName) // Note that result is uppercase
+      done();
+    };
+
+    const {error, captures} = await ArceAppiumDriver.arceServer.execute(scriptFn, {elementId});
+    if (error) throw new Error(error);
+    return captures[0] as string;
+  },
+  // https://w3c.github.io/webdriver/#get-element-rect
+  async getElementRect(elementId: string): Promise<Rect> {
+    const scriptFn: ScriptFn<{ elementId: string, name: string }> = ({capture, done, global, scriptContext}) => {
+      const appiumElementsById: Map<string, HTMLElement> = global.appiumElementsById as Map<string, HTMLElement> || new Map();
+      const element = appiumElementsById.get(scriptContext.elementId);
+      if (!element) throw new Error('no such window');
+      const {x, y, width, height} = element.getBoundingClientRect();
+      const rect: Rect = {x, y, width, height};
+      capture(rect)
+      done();
+    };
+
+    const {error, captures} = await ArceAppiumDriver.arceServer.execute(scriptFn, {elementId});
+    if (error) throw new Error(error);
+    return captures[0] as Rect;
+  },
+  // https://w3c.github.io/webdriver/#is-element-enabled
+  async elementEnabled(elementId: string): Promise<boolean> {
+    const scriptFn: ScriptFn<{ elementId: string, name: string }> = ({capture, done, global, scriptContext}) => {
+      const appiumElementsById: Map<string, HTMLElement> = global.appiumElementsById as Map<string, HTMLElement> || new Map();
+      const element = appiumElementsById.get(scriptContext.elementId);
+      if (!element) throw new Error('no such window');
+      // @ts-ignore
+      capture(!element.disabled);
+      done();
+    };
+
+    const {error, captures} = await ArceAppiumDriver.arceServer.execute(scriptFn, {elementId});
+    if (error) throw new Error(error);
+    return captures[0] as boolean;
+  },
+  // https://w3c.github.io/webdriver/#element-displayedness
+  async elementDisplayed(elementId: string): Promise<boolean> {
+    const scriptFn: ScriptFn<{ elementId: string, name: string }> = ({capture, done, global, scriptContext}) => {
+      const appiumElementsById: Map<string, HTMLElement> = global.appiumElementsById as Map<string, HTMLElement> || new Map();
+      const element = appiumElementsById.get(scriptContext.elementId);
+      if (!element) throw new Error('no such window');
+
+      const {top, left, bottom, right} = element.getBoundingClientRect();
+      const {clientHeight, clientWidth} = document.documentElement;
+      // Note that this will only return true if WHOLE element (excluding margins) is in view.
+      capture(top >= 0 && left >= 0 && bottom <= (window.innerHeight || clientHeight) && right <= (window.innerWidth || clientWidth));
+      done();
+    };
+
+    const {error, captures} = await ArceAppiumDriver.arceServer.execute(scriptFn, {elementId});
+    if (error) throw new Error(error);
+    return captures[0] as boolean;
+  },
+  // https://w3c.github.io/webdriver/#get-active-element
   async active(): Promise<AppiumElement> {
     const scriptFn: ScriptFn = ({done, global, capture}) => {
       const appiumElementsById: Map<string, HTMLElement> = global.appiumElementsById as Map<string, HTMLElement> || new Map();

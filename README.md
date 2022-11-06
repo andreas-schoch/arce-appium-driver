@@ -47,11 +47,11 @@ Then within your appium client of choice, use the following capabilities:
   - [x] `element.clear()`
   - [x] `element.setValue()`
   - [x] `element.elementSelected()`
-  - [ ] `element.getText()`
-  - [ ] `element.getName()`
-  - [ ] `element.getElementRect()`
-  - [ ] `element.elementEnabled()`
-  - [ ] `element.elementDisplayed()`
+  - [x] `element.getText()`
+  - [x] `element.getName()`
+  - [x] `element.getElementRect()`
+  - [x] `element.elementEnabled()`
+  - [x] `element.elementDisplayed()`
   - [ ] `element.getElementScreenshot()`
 - Execute:
   - [ ] `executeMethod`
