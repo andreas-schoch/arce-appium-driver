@@ -1,11 +1,13 @@
 import {ArceFindCommands, findCommands} from './find';
 import {ArceElementCommands, elementCommands} from './element';
-import {navigateCommands} from './navigate';
+import {ArceNavigateCommands, navigateCommands} from './navigate';
+import {ArceExecuteCommands, executeCommands} from './execute';
 
 
-export const commands: ArceFindCommands & ArceElementCommands = {
+// TODO find a more elegant way to have "mixins"
+export const commands: ArceFindCommands & ArceElementCommands & ArceNavigateCommands & ArceExecuteCommands = {
   ...findCommands,
   ...elementCommands,
-  ...navigateCommands
-  // ...executeCommands,
+  ...navigateCommands,
+  ...executeCommands,
 };
